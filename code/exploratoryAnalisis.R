@@ -57,11 +57,175 @@ rm(entrenamiento2, prueba2, validacion2, fraudes, noFraudes, datos_particion)
 summary(entrenamiento)
 
 # Histogramas ----
+# V1
 ggplot(data=entrenamiento) + 
   geom_histogram(aes(x=V1), bins=sqrt(180000)) +
   coord_cartesian(xlim = c(-15, 3)) +
   labs(y='Frecuencia') + theme_minimal()
 
+# V2
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V2), bins=sqrt(180000)) +
+  coord_cartesian(xlim = c(-15, 15)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V3
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V3), bins=sqrt(180000)) +
+  coord_cartesian(xlim = c(-15,5)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V4
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V4), bins=sqrt(180000)) +
+  coord_cartesian(xlim = c(-6,15)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V5
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V5), bins=sqrt(180000)) +
+  coord_cartesian(xlim = c(-15,15)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V6
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V6), bins=sqrt(180000)) +
+  coord_cartesian(xlim = c(-15,15)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V7
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V7), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V8
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V8), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V9
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V9), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V10
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V10), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V11
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V11), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V12
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V12), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V13
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V13), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V14
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V14), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V15
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V15), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V16
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V16), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V17
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V17), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V18
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V18), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V19
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V19), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V20
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V20), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V21
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V21), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V22
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V22), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V23
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V23), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V24
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V24), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V25
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V25), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V26
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V26), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V27
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V27), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# V28
+ggplot(data=entrenamiento) + 
+  geom_histogram(aes(x=V28), bins=sqrt(180000)) +
+  #coord_cartesian(xlim = c(,)) +
+  labs(y='Frecuencia') + theme_minimal()
+
+# Amount
 ggplot(data=entrenamiento) + 
   geom_histogram(aes(x=Amount), bins=sqrt(180000)) +
   coord_cartesian(xlim = c(0, 2500)) +
