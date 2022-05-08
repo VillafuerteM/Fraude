@@ -9,6 +9,8 @@
 library(tidyverse)
 library(lubridate)
 library(tidymodels)
+library(corrplot)
+library(GGally)
 
 # lectura de datos ----
 datos <- read.csv('creditcard.csv')
@@ -431,3 +433,23 @@ ggplot(data=entrenamiento,aes(y=Amount, x=factor(Class))) +
   labs(x="Fraud") + theme_minimal()
 
 # analisis de correlaciones ----
+M <-cor(entrenamiento%>%select(-number), use = "pairwise.complete.obs")
+corrplot(M, type = "upper", tl.col="black")
+
+# grafica de puntitos 
+ggplot(data=entrenamiento,aes(x=V1,y=V2))+
+  geom_point()
+
+# dispersiones todos contra todos
+# puede tardar mucho por lo que se puede optar por una versión con menos datos
+ggpairs(entrenamiento%>%select(-number))
+
+# se hace la normalización de Amount
+a<- data.frame((entrenamiento$Amount - mean(entrenamiento$Amount)) / sd(entrenamiento$Amount))
+summary(a)
+colnames(a)<-c("variable")
+ggplot(a,aes(x=variable))+
+  geom_histogram(bins=sqrt(180000))+
+  coord_cartesian(xlim=c(-1,1))
+# vemos la proporción que supera el valor de 1
+nrow(a%>%filter(variable>1))/182275
