@@ -71,7 +71,9 @@ arbol <- decision_tree(cost_complexity = tune(),
   set_engine("rpart") %>% 
   set_mode("classification") 
 
-receta <- recipe(Clase ~ ., entrenamiento2)
+receta <- recipe(Clase ~ ., entrenamiento2) %>%
+  step_normalize(all_predictors()) %>% 
+  step_rm(number)
 
 flujo <- workflow() %>% 
   add_recipe(receta) %>% 
@@ -118,6 +120,3 @@ predict(arbol_podado_vc, prueba2, type = "prob") %>%
   bind_cols(prueba2 %>% select(Clase)) %>% 
   metricas_fraude(Clase, .pred_X0, estimate = .pred_class) 
 arbol_podado_vc
-
-
-
