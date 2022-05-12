@@ -1,0 +1,154 @@
+##################### RANDOM FOREST ##################### 
+
+# librerias ----
+library(tidyverse)
+library(tidymodels)
+
+# lectura de datos (mismos pasos que en el EDA) ----
+datos <- read.csv('creditcard.csv')
+# se hace un str para ver el tipo de variables y si identificamos faltantes
+str(datos)
+
+# ajuste de la variable Time
+# declaramos una fecha inicial aleatoria a falta de información
+datos <- datos %>% dplyr::mutate(fechaInicial=as.Date('2013-01-01'))
+datos <- datos %>% dplyr::mutate(fechaTransaccion = fechaInicial+lubridate::seconds(Time))
+datos <- datos %>% dplyr::select(-c(Time, fechaInicial,fechaTransaccion))
+# se observa con la fechaTransaccion máxima que se tiene información de transacciones
+# de dos días enteros a partir de la realización de la primera transacción del set de datos
+# esta variable no se considerará ya que no nos da mucha información por ser un corto periodo
+# aún si se observara una concentración de fraudes en horas más altas de la noche, solo se cuentan
+# con dos días, por lo que se tendría que estudiar con información de otros días si esto se cumple
+
+# sets de prueba, validación y entrenamiento ----
+# se agrega la variable secuencial para identificar casos puntuales de ser necesario (C.U.)
+datos <- datos %>% dplyr::mutate(number=seq(from=1, to=284807))
+fraudes <- datos %>% filter(Class==1)
+noFraudes <- datos %>% filter(Class==0)
+set.seed(20010725)
+datos_particion <- initial_split(fraudes, 0.8)
+entrenamiento<- training(datos_particion)
+prueba<- testing(datos_particion)
+datos_particion <-initial_split(entrenamiento, 0.8)
+entrenamiento <- training(datos_particion)
+validacion <- testing(datos_particion)
+# tenemos que repetir lo anterior pero con los casos de no fraude
+set.seed(20210619)
+datos_particion <- initial_split(noFraudes, 0.8)
+entrenamiento2 <- training(datos_particion)
+prueba2<- testing(datos_particion)
+datos_particion <-initial_split(entrenamiento2, 0.8)
+entrenamiento2 <- training(datos_particion)
+validacion2 <- testing(datos_particion)
+# los juntamos
+entrenamiento <- rbind(entrenamiento, entrenamiento2)
+prueba <- rbind(prueba, prueba2)
+validacion <- rbind(validacion, validacion2)
+rm(entrenamiento2, prueba2, validacion2, fraudes, noFraudes, datos_particion)
+
+# ajuste ----
+entrenamiento <- entrenamiento %>% mutate(Class=as.factor(Class))
+entrenamiento2 <- entrenamiento %>% mutate(Clase=as.factor(ifelse(Class==0,'X0','X1')))
+entrenamiento2 <- entrenamiento2 %>% select(-Class)
+
+receta <- recipe(Clase ~ ., data = entrenamiento2) %>%
+  step_normalize(all_predictors()) %>%
+  step_rm(number)
+
+tree_prep <- prep(receta)
+juiced <- juice(tree_prep)
+
+# establecemos lo que vamos a optimizar
+tune_spec <- rand_forest(mtry = tune(), trees = 1000, min_n = tune()) %>%
+  set_mode("classification") %>%
+  set_engine("ranger")
+
+# declaramos un workflow
+tune_wf <- workflow() %>% add_recipe(receta) %>% add_model(tune_spec)
+
+# creamos el set para validacion cruzada
+set.seed(20010725)
+trees_folds <- vfold_cv(entrenamiento2, v=5)
+
+# para correr en paralelo
+doParallel::registerDoParallel()
+
+set.seed(20220510)
+tune_res <- tune_grid(tune_wf, resamples = trees_folds, grid = 2)
+
+tune_res
+
+# evaluamos resultados para escoger parametros
+tune_res %>%
+  collect_metrics() %>%
+  filter(.metric == "roc_auc") %>%
+  select(mean, min_n, mtry) %>%
+  pivot_longer(min_n:mtry,
+               values_to = "value",
+               names_to = "parameter"
+  ) %>%
+  ggplot(aes(value, mean, color = parameter)) +
+  geom_point(show.legend = FALSE) +
+  facet_wrap(~parameter, scales = "free_x") +
+  labs(x = NULL, y = "AUC")
+
+
+# ahora si hacemos combinaciones 
+rf_grid <- grid_regular(
+  mtry(range = c(10, 30)),
+  min_n(range = c(2, 8)),
+  levels = 5
+)
+
+set.seed(250701)
+regular_res <- tune_grid(
+  tune_wf,
+  resamples = trees_folds,
+  grid = rf_grid
+)
+
+regular_res
+
+# vemos los resultados 
+regular_res %>%
+  collect_metrics() %>%
+  filter(.metric == "roc_auc") %>%
+  mutate(min_n = factor(min_n)) %>%
+  ggplot(aes(mtry, mean, color = min_n)) +
+  geom_line(alpha = 0.5, size = 1.5) +
+  geom_point() +
+  labs(y = "AUC")
+
+# escogemos el mejor modelo
+best_auc <- select_best(regular_res, "roc_auc")
+
+final_rf <- finalize_model(
+  tune_spec,
+  best_auc
+)
+
+final_rf
+
+# entrenamos el mejor modelo
+final_wf <- workflow() %>%
+  add_recipe(tree_rec) %>%
+  add_model(final_rf)
+
+mejor_randForest <- finalize_workflow(final_wf, final_rf) %>% 
+  fit(entrenamiento2)
+
+metricas_fraude <- metric_set(roc_auc, accuracy, sens, spec)
+
+prueba <- prueba %>% mutate(Class=as.factor(Class))
+prueba2 <- prueba %>% mutate(Clase=as.factor(ifelse(Class==0,'X0','X1')))
+prueba2 <- prueba2 %>% select(-Class)
+
+predict(mejor_randForest, prueba2, type = "prob") %>%
+  bind_cols(predict(mejor_randForest, prueba2)) %>% 
+  bind_cols(prueba2 %>% select(Clase)) %>% 
+  metricas_fraude(Clase, .pred_X0, estimate = .pred_class) 
+
+mejor_randForest
+
+
+
