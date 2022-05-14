@@ -98,13 +98,13 @@ ggplot(data=entrenamiento) +
 # V7
 ggplot(data=entrenamiento) + 
   geom_histogram(aes(x=V7), bins=sqrt(180000)) +
-  #coord_cartesian(xlim = c(,)) +
+  coord_cartesian(xlim = c(-10,10)) +
   labs(y='Frecuencia') + theme_minimal()
 
 # V8
 ggplot(data=entrenamiento) + 
   geom_histogram(aes(x=V8), bins=sqrt(180000)) +
-  #coord_cartesian(xlim = c(,)) +
+  coord_cartesian(xlim = c(-10,10)) +
   labs(y='Frecuencia') + theme_minimal()
 
 # V9
@@ -116,7 +116,7 @@ ggplot(data=entrenamiento) +
 # V10
 ggplot(data=entrenamiento) + 
   geom_histogram(aes(x=V10), bins=sqrt(180000)) +
-  #coord_cartesian(xlim = c(,)) +
+  coord_cartesian(xlim = c(-10,10)) +
   labs(y='Frecuencia') + theme_minimal()
 
 # V11
@@ -140,7 +140,7 @@ ggplot(data=entrenamiento) +
 # V14
 ggplot(data=entrenamiento) + 
   geom_histogram(aes(x=V14), bins=sqrt(180000)) +
-  #coord_cartesian(xlim = c(,)) +
+  coord_cartesian(xlim = c(-10,10)) +
   labs(y='Frecuencia') + theme_minimal()
 
 # V15
@@ -152,13 +152,13 @@ ggplot(data=entrenamiento) +
 # V16
 ggplot(data=entrenamiento) + 
   geom_histogram(aes(x=V16), bins=sqrt(180000)) +
-  #coord_cartesian(xlim = c(,)) +
+  coord_cartesian(xlim = c(-10,10)) +
   labs(y='Frecuencia') + theme_minimal()
 
 # V17
 ggplot(data=entrenamiento) + 
   geom_histogram(aes(x=V17), bins=sqrt(180000)) +
-  #coord_cartesian(xlim = c(,)) +
+  coord_cartesian(xlim = c(-10,10)) +
   labs(y='Frecuencia') + theme_minimal()
 
 # V18
@@ -176,13 +176,13 @@ ggplot(data=entrenamiento) +
 # V20
 ggplot(data=entrenamiento) + 
   geom_histogram(aes(x=V20), bins=sqrt(180000)) +
-  #coord_cartesian(xlim = c(,)) +
+  coord_cartesian(xlim = c(-5,5)) +
   labs(y='Frecuencia') + theme_minimal()
 
 # V21
 ggplot(data=entrenamiento) + 
   geom_histogram(aes(x=V21), bins=sqrt(180000)) +
-  #coord_cartesian(xlim = c(,)) +
+  coord_cartesian(xlim = c(-10,10)) +
   labs(y='Frecuencia') + theme_minimal()
 
 # V22
@@ -194,7 +194,7 @@ ggplot(data=entrenamiento) +
 # V23
 ggplot(data=entrenamiento) + 
   geom_histogram(aes(x=V23), bins=sqrt(180000)) +
-  #coord_cartesian(xlim = c(,)) +
+  coord_cartesian(xlim = c(-5,5)) +
   labs(y='Frecuencia') + theme_minimal()
 
 # V24
@@ -218,19 +218,19 @@ ggplot(data=entrenamiento) +
 # V27
 ggplot(data=entrenamiento) + 
   geom_histogram(aes(x=V27), bins=sqrt(180000)) +
-  #coord_cartesian(xlim = c(,)) +
+  coord_cartesian(xlim = c(-5,5)) +
   labs(y='Frecuencia') + theme_minimal()
 
 # V28
 ggplot(data=entrenamiento) + 
   geom_histogram(aes(x=V28), bins=sqrt(180000)) +
-  #coord_cartesian(xlim = c(,)) +
+  coord_cartesian(xlim = c(-2.5,2.5)) +
   labs(y='Frecuencia') + theme_minimal()
 
 # Amount
 ggplot(data=entrenamiento) + 
   geom_histogram(aes(x=Amount), bins=sqrt(180000)) +
-  coord_cartesian(xlim = c(0, 2500)) +
+  coord_cartesian(xlim = c(0, 1500)) +
   labs(y='Frecuencia') + theme_minimal()
 
 # Boxplots separados por clase ----
@@ -436,20 +436,7 @@ ggplot(data=entrenamiento,aes(y=Amount, x=factor(Class))) +
 M <-cor(entrenamiento%>%select(-number), use = "pairwise.complete.obs")
 corrplot(M, type = "upper", tl.col="black")
 
-# grafica de puntitos 
-ggplot(data=entrenamiento,aes(x=V1,y=V2))+
-  geom_point()
 
-# dispersiones todos contra todos
-# puede tardar mucho por lo que se puede optar por una versión con menos datos
+# dispersiones todos contra todos ----
 ggpairs(entrenamiento%>%select(-number))
 
-# se hace la normalización de Amount
-a<- data.frame((entrenamiento$Amount - mean(entrenamiento$Amount)) / sd(entrenamiento$Amount))
-summary(a)
-colnames(a)<-c("variable")
-ggplot(a,aes(x=variable))+
-  geom_histogram(bins=sqrt(180000))+
-  coord_cartesian(xlim=c(-1,1))
-# vemos la proporción que supera el valor de 1
-nrow(a%>%filter(variable>1))/182275
