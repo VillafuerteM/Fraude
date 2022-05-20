@@ -1,6 +1,6 @@
 ##################### KNN ##################### 
 
-#librerias ----
+# librerias ----
 library(tidyverse)
 library(tidymodels)
 
@@ -46,7 +46,7 @@ prueba <- rbind(prueba, prueba2)
 validacion <- rbind(validacion, validacion2)
 rm(entrenamiento2, prueba2, validacion2, fraudes, noFraudes, datos_particion)
 
-# Primer intento con k vecinos ----
+# Ajustamos los modelos y sacamos AUC en validacion ----
 resultados <- data.frame(KNN=integer(),AUC=double())
 
 ajusta_KNN <- function(KNN,entrenamiento,validacion,resultados){
@@ -80,23 +80,97 @@ ajusta_KNN <- function(KNN,entrenamiento,validacion,resultados){
   resultados<-rbind(resultados, renglon)
 }
 
-for(i in 16:20){
+for(i in 1:50){
   resultados<-ajusta_KNN(KNN=i,entrenamiento, validacion, resultados)
   print(i)
 }
 
+write.csv(resultados,"resultados_knn.csv")
 
-ggplot(predict_validacion, aes(x=Class, y=.pred_1))+
-  geom_jitter()
+# Entrenamos el mejor modelo ----
+entrenamiento <- entrenamiento %>% mutate(Class=as.factor(Class))
 
-prueba_ROC <- predict_validacion%>%select(.pred_1, Class)
+mod_knn <- nearest_neighbor(neighbors = 9, weight_func = "rectangular") %>% 
+  set_engine("kknn") %>% 
+  set_mode("classification")
+
+receta_vmc <- recipe(Class ~ ., entrenamiento) %>% 
+  step_normalize(all_predictors()) %>% 
+  step_rm(number)%>% 
+  prep()
+
+flujo <- workflow() %>% 
+  add_recipe(receta_vmc) 
+
+ajuste_1 <- flujo %>% add_model(mod_knn) %>% fit(entrenamiento)
+
+
+# Calculamos AUC en prueba ----
+predict_prueba <- ajuste_1 %>% 
+  predict(prueba, type = "prob") %>% 
+  bind_cols(prueba) %>% 
+  select(number, Class, .pred_0, .pred_1)
+
+prueba_ROC <- predict_prueba%>%select(.pred_1, Class)
 colnames(prueba_ROC)<-c("predictions","labels")
 
 pred <- prediction(prueba_ROC$predictions, prueba_ROC$labels)
-perf <- performance(pred,"tpr","fpr")
-plot(perf,colorize=TRUE)
 
 auc_ROCR <- performance(pred, measure = "auc")
 auc_ROCR <- auc_ROCR@y.values[[1]]
 
-write.csv(resultados,"resultados_knn.csv")
+perf <- performance(pred,"tpr","fpr")
+plot(perf,colorize=TRUE)
+
+
+# Ahora variamos la proporcion de la clase 1
+proporcion <- 0.1
+fraudes <- entrenamiento %>% filter(Class==1)
+nuevoEnt <- entrenamiento %>% filter(!number%in%fraudes$number)
+
+set.seed(25072001)
+nuevoEnt <- slice_sample(nuevoEnt, n=nrow(fraudes)/proporcion, replace=F)
+nuevoEnt <- rbind(nuevoEnt, fraudes)  
+
+resultados <- data.frame(KNN=integer(),AUC=double())
+
+for(i in 1:50){
+  resultados<-ajusta_KNN(KNN=i,nuevoEnt, validacion, resultados)
+  print(i)
+}
+
+write.csv(resultados, 'resultados_90.csv')
+
+# Entrenamos el mejor modelo y sacamos AUC en prueba
+mod_knn <- nearest_neighbor(neighbors = 37, weight_func = "rectangular") %>% 
+  set_engine("kknn") %>% 
+  set_mode("classification")
+
+receta_vmc <- recipe(Class ~ ., nuevoEnt) %>% 
+  step_normalize(all_predictors()) %>% 
+  step_rm(number)%>% 
+  prep()
+
+flujo <- workflow() %>% 
+  add_recipe(receta_vmc) 
+
+ajuste_1 <- flujo %>% add_model(mod_knn) %>% fit(nuevoEnt)
+
+predict_prueba <- ajuste_1 %>% 
+  predict(prueba, type = "prob") %>% 
+  bind_cols(prueba) %>% 
+  select(number, Class, .pred_0, .pred_1)
+
+prueba_ROC <- predict_prueba%>%select(.pred_1, Class)
+colnames(prueba_ROC)<-c("predictions","labels")
+
+pred <- prediction(prueba_ROC$predictions, prueba_ROC$labels)
+
+auc_ROCR <- performance(pred, measure = "auc")
+auc_ROCR <- auc_ROCR@y.values[[1]]
+auc_ROCR
+
+perf <- performance(pred,"tpr","fpr")
+plot(perf,colorize=TRUE)
+
+
