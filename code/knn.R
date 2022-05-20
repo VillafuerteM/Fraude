@@ -132,6 +132,8 @@ set.seed(25072001)
 nuevoEnt <- slice_sample(nuevoEnt, n=nrow(fraudes)/proporcion, replace=F)
 nuevoEnt <- rbind(nuevoEnt, fraudes)  
 
+nuevoEnt <- read.csv('setEntrenamiento_0005.csv')
+nuevoEnt <- nuevoEnt %>% select(-X) %>% mutate(Class=as.factor(Class))
 resultados <- data.frame(KNN=integer(),AUC=double())
 
 for(i in 1:50){
@@ -139,7 +141,7 @@ for(i in 1:50){
   print(i)
 }
 
-write.csv(resultados, 'resultados_90.csv')
+write.csv(resultados, 'resultados_0005.csv')
 
 # Entrenamos el mejor modelo y sacamos AUC en prueba
 mod_knn <- nearest_neighbor(neighbors = 37, weight_func = "rectangular") %>% 
@@ -172,5 +174,13 @@ auc_ROCR
 
 perf <- performance(pred,"tpr","fpr")
 plot(perf,colorize=TRUE)
+
+
+# Grafica para identificar si hay conglomerados bien definidos para cada clase ----
+# Ponemos de color claro el set de entrenamiento y de azul oscuro los de la Clase 1 del set de prueba
+ggplot(nuevoEnt, aes(x=V1, y=V2, color=Class))+
+  geom_point()+
+  geom_point(data=prueba%>%filter(Class==1), aes(x=V1, y=V2), color='darkblue')+
+  theme_minimal()
 
 
