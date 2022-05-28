@@ -51,7 +51,7 @@ entrenamiento <- entrenamiento %>% mutate(Class=as.factor(Class))
 entrenamiento2 <- entrenamiento %>% mutate(Clase=as.factor(ifelse(Class==0,'X0','X1')))
 entrenamiento2 <- entrenamiento2 %>% select(-Class)
 
-receta <- recipe(Clase ~ ., data = entrenamiento2) %>%
+receta <- recipe(Class ~ V1+V2+V3, data = nuevoEnt) %>%
   step_normalize(all_predictors()) %>%
   step_rm(number)
 
@@ -68,7 +68,7 @@ tune_wf <- workflow() %>% add_recipe(receta) %>% add_model(tune_spec)
 
 # creamos el set para validacion cruzada
 set.seed(20010725)
-trees_folds <- vfold_cv(entrenamiento2, v=5)
+trees_folds <- vfold_cv(nuevoEnt, v=5)
 
 # para correr en paralelo
 doParallel::registerDoParallel()
@@ -129,13 +129,14 @@ final_rf <- finalize_model(
 
 final_rf
 
+
 # entrenamos el mejor modelo
 final_wf <- workflow() %>%
   add_recipe(tree_rec) %>%
   add_model(final_rf)
 
 mejor_randForest <- finalize_workflow(final_wf, final_rf) %>% 
-  fit(entrenamiento2)
+  fit(nuevoEnt)
 
 metricas_fraude <- metric_set(roc_auc, accuracy, sens, spec)
 
@@ -151,4 +152,35 @@ predict(mejor_randForest, prueba2, type = "prob") %>%
 mejor_randForest
 
 
+
+# Nuevo intento ----
+
+# MODELO
+receta <- recipe(Class ~ ., data = nuevoEnt) %>%
+  step_normalize(all_predictors()) %>%
+  step_rm(number)
+
+tree_prep <- prep(receta)
+juiced <- juice(tree_prep)
+
+rf_modelo <- rand_forest(mtry = 10, trees = 100, min_n = 10) %>%
+  set_mode("classification") %>%
+  set_engine("ranger")
+
+rf_worflow <- workflow() %>% add_recipe(receta) %>% add_model(rf_modelo)
+
+ajuste_rf <-rf_worflow %>% fit(nuevoEnt)
+
+pred_val_rf <- ajuste_rf %>% predict(validacion, type='prob') %>% bind_cols(validacion) %>%
+  select(number, Class, .pred_0, .pred_1)
+
+prueba_ROC_rf <- pred_val_rf%>%select(.pred_1, Class)
+
+colnames(prueba_ROC_rf)<-c("predictions","labels")
+
+pred_rf <- prediction(prueba_ROC_rf$predictions, prueba_ROC_rf$labels)
+
+auc_ROCR_rf <- performance(pred_rf, measure = "auc")
+auc_ROCR_rf <- auc_ROCR_rf@y.values[[1]]
+auc_ROCR_rf
 
